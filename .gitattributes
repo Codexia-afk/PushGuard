@@ -1,0 +1,7 @@
+# Keep source and scripts consistent even when Windows enables core.autocrlf.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.zip binary
+*.gz binary
+*.exe binary

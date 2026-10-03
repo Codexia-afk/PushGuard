@@ -1,0 +1,42 @@
+version: 1
+checks:
+  - name: lint
+    category: lint
+    command: npm run lint
+    required: true
+  - name: typecheck
+    category: typecheck
+    command: npm run typecheck
+    required: true
+  - name: tests
+    category: test
+    command: npm test
+    required: true
+repair:
+  enabled: true
+  requireGenerationConsent: true
+  requireApplyApproval: true
+  maxAttempts: 8
+  maxSessions: 2
+ai:
+  provider: ollama
+  model: qwen2.5-coder:7b
+  contextTokens: 16384
+  maxContextChars: 16000
+  timeoutSeconds: 300
+  endpoint: http://127.0.0.1:11434
+  localFirst: true
+review:
+  requiredAfterAIChanges: true
+push:
+  requireExplicitConfirmation: true
+  invalidateConfirmationOnStateChange: true
+preflight:
+  git: true
+  lfs: true
+  remote: true
+  resource: true
+  repositoryPolicy: true
+privacy:
+  redactSecrets: true
+  allowRemoteAI: false

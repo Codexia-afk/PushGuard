@@ -1,0 +1,16 @@
+[
+  {
+    "filePath": "src/auth/user.ts",
+    "messages": [
+      {
+        "ruleId": "@typescript-eslint/no-unsafe-member-access",
+        "severity": 2,
+        "message": "Unsafe member access .email on an `any` value.",
+        "line": 47,
+        "column": 18
+      }
+    ],
+    "errorCount": 1,
+    "warningCount": 0
+  }
+]

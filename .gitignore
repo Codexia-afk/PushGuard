@@ -1,0 +1,18 @@
+# Local build output
+/bin/
+*.test
+*.out
+
+# Local PushGuard configuration may contain developer-specific commands
+# Keep the file visible by default; ignore only transient snapshots if used.
+.pushguard/snapshots/
+
+# Editor/OS noise
+.DS_Store
+.vscode/
+.idea/
+
+# Reproducible release packages
+/dist/
+/pushguard
+/pushguard.exe

@@ -1,0 +1,16 @@
+{
+  "name": "pushguard-real-ai-acceptance",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint src --format json",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.mjs",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "eslint": "9.39.1",
+    "typescript": "5.9.3"
+  }
+}

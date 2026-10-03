@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "C:\Users\dhrub\AppData\Local\Temp\pyt\rt.py", line 6, in <module>
+    f()
+  File "C:\Users\dhrub\AppData\Local\Temp\pyt\rt.py", line 4, in f
+    return undefined_name + 1
+           ^^^^^^^^^^^^^^
+NameError: name 'undefined_name' is not defined

@@ -1,0 +1,64 @@
+name: Verify
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go: ['1.22.x', 'stable']
+        # Go 1.22 predates the LC_UUID required by macOS 26's loader.
+        # Keep minimum-version coverage on macOS 15 and current Go on latest.
+        exclude:
+          - os: macos-latest
+            go: '1.22.x'
+        include:
+          - os: macos-15
+            go: '1.22.x'
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - name: Complete local verification
+        run: go run ./cmd/pushguard ready --non-interactive
+      - name: Real workflow demonstrations
+        run: go run ./cmd/pushguard demo --scenario all
+      - name: Show complete test failures
+        if: failure()
+        run: go test -count=1 ./...
+
+  race:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+      - run: go test -race -count=1 ./...
+
+  artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+      - name: Build every supported platform
+        run: go run ./cmd/release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pushguard-platform-packages
+          path: dist/
