@@ -95,6 +95,7 @@ func parseInput(check model.Check, result model.CommandResult) []model.Diagnosti
 			break
 		}
 		line = strings.TrimSpace(line)
+		line = stripLocationLabel(line)
 		line = strings.TrimSpace(strings.TrimPrefix(line, "-->"))
 		line = strings.TrimPrefix(line, "test at ")
 		// ESLint's "✖ N problems" summary repeats counts, not new evidence.
@@ -261,13 +262,33 @@ func toolName(c model.Check) string {
 	}
 }
 func cleanPath(s string) string {
-	s = strings.Trim(strings.TrimSpace(s), "\"'")
+	s = strings.TrimSpace(s)
+	for _, prefix := range []string{"location:", "file:", "path:", "at "} {
+		lower := strings.ToLower(s)
+		if prefix == "file:" && strings.HasPrefix(lower, "file://") {
+			continue
+		}
+		if strings.HasPrefix(lower, prefix) {
+			s = strings.TrimSpace(s[len(prefix):])
+		}
+	}
+	s = strings.Trim(strings.TrimSpace(s), "\"'`")
 	if strings.HasPrefix(s, "file://") {
 		if u, err := url.Parse(s); err == nil && (u.Host == "" || u.Host == "localhost") {
 			s = u.Path
 			if len(s) > 2 && s[0] == '/' && s[2] == ':' {
 				s = s[1:]
 			}
+		}
+	}
+	return s
+}
+
+func stripLocationLabel(s string) string {
+	lower := strings.ToLower(strings.TrimSpace(s))
+	for _, prefix := range []string{"location:", "path:"} {
+		if strings.HasPrefix(lower, prefix) {
+			return strings.Trim(strings.TrimSpace(s[len(prefix):]), "\"'`")
 		}
 	}
 	return s

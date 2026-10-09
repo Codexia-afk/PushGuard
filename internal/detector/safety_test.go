@@ -48,3 +48,22 @@ func TestWorkspaceMemberChecksAreNotAssumedFromRootScript(t *testing.T) {
 		t.Fatal("root test script suppressed member lint")
 	}
 }
+
+func TestFixturesDoNotBecomeProductionProjectBoundaries(t *testing.T) {
+	root := tree(t, map[string]string{
+		"go.mod":                         "module example.test/pushguard\n\ngo 1.22\n",
+		"main.go":                        "package main\n",
+		"testdata/broken/package.json":   `{"scripts":{"test":"node --test"}}`,
+		"fixtures/sample/package.json":   `{"scripts":{"build":"tsc"}}`,
+		"__fixtures__/case/package.json": `{"scripts":{"lint":"eslint ."}}`,
+	})
+	discovery := Discover(context.Background(), root, false)
+	if len(discovery.Boundaries) != 1 || discovery.Boundaries[0].Dir != "." {
+		t.Fatalf("fixture projects entered production verification: %+v", discovery.Boundaries)
+	}
+	for _, file := range discovery.Files {
+		if Ignored(file) {
+			t.Fatalf("ignored fixture was discovered: %s", file)
+		}
+	}
+}

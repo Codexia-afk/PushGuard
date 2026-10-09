@@ -34,6 +34,7 @@ var ignoredDirs = map[string]bool{
 	".mypy_cache": true, ".pytest_cache": true, ".ruff_cache": true, "target": true, ".next": true,
 	".nuxt": true, ".gradle": true, ".idea": true, ".vscode": true, "site-packages": true, ".eggs": true,
 	"bower_components": true, ".terraform": true, ".cache": true, ".parcel-cache": true, ".turbo": true,
+	"testdata": true, "fixtures": true, "__fixtures__": true,
 }
 
 var extensionLanguage = map[string]string{

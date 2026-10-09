@@ -73,6 +73,14 @@ func TestGenericColumnsAndGoJSON(t *testing.T) {
 		t.Fatalf("Go JSON evidence lost: %+v", ds)
 	}
 }
+
+func TestLocationLabelAndQuotedPathAreNormalized(t *testing.T) {
+	result := model.CommandResult{ExitCode: 1, Stdout: "location: '/workspace/tests/cart.test.mjs:6:1'\n"}
+	ds := Parse(model.Check{Name: "test", Category: "test"}, result)
+	if len(ds) != 1 || ds[0].Location.File != "/workspace/tests/cart.test.mjs" || ds[0].Location.Line != 6 || ds[0].Location.Column != 1 {
+		t.Fatalf("location label was treated as part of the path: %+v", ds)
+	}
+}
 func TestSuccessfulLogsDoNotInventFailures(t *testing.T) {
 	ds := Parse(model.Check{Name: "tool"}, model.CommandResult{ExitCode: 0, Stdout: "0 errors, no failed tests\n"})
 	if len(ds) != 0 {
