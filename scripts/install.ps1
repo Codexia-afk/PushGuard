@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 # PushGuard binary installer. Override PUSHGUARD_RELEASE_BASE_URL for a release
 # mirror or future product domain. The downloaded archive is always checked
 # against the published SHA-256 manifest before installation.
-$DefaultReleaseBase = 'https://github.com/Codexia-afk/Hackspire_project/releases/latest/download'
+$DefaultReleaseBase = 'https://github.com/Codexia-afk/PushGuard/releases/latest/download'
 $ReleaseBase = if ($env:PUSHGUARD_RELEASE_BASE_URL) { $env:PUSHGUARD_RELEASE_BASE_URL } else { $DefaultReleaseBase }
 $InstallDir = if ($env:PUSHGUARD_INSTALL_DIR) { $env:PUSHGUARD_INSTALL_DIR } else { Join-Path $env:LOCALAPPDATA 'PushGuard\bin' }
 
@@ -55,7 +55,7 @@ if ($env:PUSHGUARD_INSTALL_FROM_SOURCE -eq '1') {
 
 if (-not ([Uri]$ReleaseBase).Scheme.Equals('https', [StringComparison]::OrdinalIgnoreCase)) { Fail 'release URL must use HTTPS.' }
 if ($env:PUSHGUARD_RELEASE_VERSION -and $ReleaseBase -eq $DefaultReleaseBase) {
-    $ReleaseBase = "https://github.com/Codexia-afk/Hackspire_project/releases/download/v$($env:PUSHGUARD_RELEASE_VERSION)"
+    $ReleaseBase = "https://github.com/Codexia-afk/PushGuard/releases/download/v$($env:PUSHGUARD_RELEASE_VERSION)"
 }
 $Architecture = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE }
 switch ($Architecture.ToUpperInvariant()) {

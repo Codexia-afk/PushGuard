@@ -447,9 +447,10 @@ func (b *builder) golang(boundary model.ProjectBoundary) {
 		{Name: prefix(boundary.Dir, "gofmt"), Category: "format", Args: []string{"gofmt", "-l", "."}, Required: true},
 		{Name: prefix(boundary.Dir, "go vet"), Category: "vet", Args: []string{"go", "vet", "./..."}, Required: true},
 		{Name: prefix(boundary.Dir, "go test"), Category: "test", Args: []string{"go", "test", "-json", "-count=1", "./..."}, Required: true},
-		// A single main package would otherwise write its binary into the
-		// repository and change the state being verified.
-		{Name: prefix(boundary.Dir, "go build"), Category: "build", Args: []string{"go", "build", "-o", filepath.Join(os.TempDir(), "pushguard-tool-cache", "gobuild") + string(filepath.Separator), "./..."}, Required: true},
+		// Discard build outputs without changing the repository. An output
+		// directory only builds main packages and rejects library-only modules;
+		// Go's null-device output supports both libraries and executables.
+		{Name: prefix(boundary.Dir, "go build"), Category: "build", Args: []string{"go", "build", "-o", os.DevNull, "./..."}, Required: true},
 	} {
 		c.WorkingDir, c.Language, c.Project = wd, "Go", boundary.Dir
 		b.add(b.unavailableIfMissing(c))

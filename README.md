@@ -72,16 +72,33 @@ limit; the repository remained **FAIL**, and no push occurred.
 
 ## Install
 
-Install the latest published binary on macOS or Linux:
+No binary release is published yet. Install from source on macOS, Linux, or
+Windows with Git and a compatible Go version installed:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Codexia-afk/Hackspire_project/main/scripts/install.sh | sh
+git clone https://github.com/Codexia-afk/PushGuard.git
+cd PushGuard
+go install ./cmd/pushguard
+```
+
+Add Go's binary directory (`go env GOPATH`, followed by `bin`) to your `PATH`.
+To check the project from that folder on any of these platforms:
+
+```sh
+go run ./cmd/pushguard ready --non-interactive
+go run ./cmd/pushguard demo --scenario all
+```
+
+Once a release is published, install its binary on macOS or Linux:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Codexia-afk/PushGuard/main/scripts/install.sh | sh
 ```
 
 Install it on Windows PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/Codexia-afk/Hackspire_project/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/Codexia-afk/PushGuard/main/scripts/install.ps1 | iex
 ```
 
 The installers download the platform archive from the project's GitHub
@@ -113,8 +130,8 @@ the release, verify the archive before extracting it, then place `pushguard`
 or `pushguard.exe` on PATH. For example on macOS Apple Silicon:
 
 ```sh
-curl -fLO https://github.com/Codexia-afk/Hackspire_project/releases/download/v0.3.0/pushguard-darwin-arm64.tar.gz
-curl -fLO https://github.com/Codexia-afk/Hackspire_project/releases/download/v0.3.0/checksums.txt
+curl -fLO https://github.com/Codexia-afk/PushGuard/releases/download/v0.3.0/pushguard-darwin-arm64.tar.gz
+curl -fLO https://github.com/Codexia-afk/PushGuard/releases/download/v0.3.0/checksums.txt
 grep 'pushguard-darwin-arm64.tar.gz$' checksums.txt | shasum -a 256 -c -
 tar -xzf pushguard-darwin-arm64.tar.gz
 install -m 0755 pushguard "$HOME/.local/bin/pushguard"

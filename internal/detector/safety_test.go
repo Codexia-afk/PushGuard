@@ -67,3 +67,47 @@ func TestFixturesDoNotBecomeProductionProjectBoundaries(t *testing.T) {
 		}
 	}
 }
+
+func TestGoBuildVerifiesLibrariesAndExecutablesWithoutArtifacts(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		files       map[string]string
+		wantFailure bool
+	}{
+		{"library", map[string]string{"lib.go": "package sample\nfunc Value() int { return 1 }\n"}, false},
+		{"executable", map[string]string{"main.go": "package main\nfunc main() {}\n"}, false},
+		{"multiple executables", map[string]string{"cmd/one/main.go": "package main\nfunc main() {}\n", "cmd/two/main.go": "package main\nfunc main() {}\n"}, false},
+		{"unreferenced broken library", map[string]string{"main.go": "package main\nfunc main() {}\n", "lib/lib.go": "package lib\nvar Value = undefined\n"}, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.files["go.mod"] = "module example.test/sample\n\ngo 1.22\n"
+			root := tree(t, tc.files)
+			c, ok := find(build(t, root, allTools()), "go build")
+			if !ok {
+				t.Fatal("missing Go build check")
+			}
+			result := (runner.Runner{}).RunInput(context.Background(), root, c.Args, time.Minute, c.Input)
+			if (result.ExitCode != 0) != tc.wantFailure {
+				t.Fatalf("unexpected build result: %d\n%s%s", result.ExitCode, result.Stdout, result.Stderr)
+			}
+			err := filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
+				if err != nil {
+					return err
+				}
+				if !entry.IsDir() {
+					rel, err := filepath.Rel(root, path)
+					if err != nil {
+						return err
+					}
+					if _, exists := tc.files[filepath.ToSlash(rel)]; !exists {
+						t.Errorf("build wrote artifact into repository: %s", rel)
+					}
+				}
+				return nil
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}

@@ -41,7 +41,7 @@ Tests use real temporary Git repositories and local bare remotes. They cover:
 - hook receipt freshness and verified-ref restriction;
 - receipt failure preventing push.
 
-LLM HTTP tests use an in-memory HTTP transport, so tests never require a service or opening a network port. A fake provider supplies controlled proposals only inside tests/demo; it is not a production configuration provider.
+HTTP tests use in-memory transports and temporary loopback servers; they need permission to listen locally but require no external AI service. A fake provider supplies controlled proposals only inside tests/demo; it is not a production configuration provider.
 
 ```text
 go test -count=1 ./...

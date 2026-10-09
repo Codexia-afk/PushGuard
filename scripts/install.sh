@@ -4,7 +4,7 @@ set -eu
 # PushGuard binary installer. The release base is configurable so the same
 # script can be served from GitHub Releases, a company mirror, or a future
 # product domain without changing its download or verification logic.
-DEFAULT_RELEASE_BASE="https://github.com/Codexia-afk/Hackspire_project/releases/latest/download"
+DEFAULT_RELEASE_BASE="https://github.com/Codexia-afk/PushGuard/releases/latest/download"
 RELEASE_BASE=${PUSHGUARD_RELEASE_BASE_URL:-"$DEFAULT_RELEASE_BASE"}
 INSTALL_DIR=${PUSHGUARD_INSTALL_DIR:-"$HOME/.local/bin"}
 
@@ -114,7 +114,7 @@ esac
 
 asset="pushguard-$target_os-$target_arch.tar.gz"
 if [ -n "${PUSHGUARD_RELEASE_VERSION:-}" ] && [ "$RELEASE_BASE" = "$DEFAULT_RELEASE_BASE" ]; then
-    RELEASE_BASE="https://github.com/Codexia-afk/Hackspire_project/releases/download/v${PUSHGUARD_RELEASE_VERSION}"
+    RELEASE_BASE="https://github.com/Codexia-afk/PushGuard/releases/download/v${PUSHGUARD_RELEASE_VERSION}"
 fi
 case "$RELEASE_BASE" in
     https://*) ;;

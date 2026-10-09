@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/pushguard/pushguard/internal/config"
 	"github.com/pushguard/pushguard/internal/testutil"
@@ -36,6 +38,13 @@ func TestAIStatusUsesSelectedRootConfigurationAndExplicitGeneration(t *testing.T
 		}
 	}))
 	defer server.Close()
+	if conn, err := net.DialTimeout("tcp", server.Listener.Addr().String(), 500*time.Millisecond); err != nil {
+		if strings.Contains(err.Error(), "operation not permitted") {
+			t.Skipf("skipping test requiring loopback socket in restricted sandbox: %v", err)
+		}
+	} else {
+		_ = conn.Close()
+	}
 	cfg, _, _ := config.Load(root)
 	cfg.AI.Provider, cfg.AI.Model, cfg.AI.Endpoint = "ollama", "code:local", server.URL
 	data, _ := json.Marshal(cfg)

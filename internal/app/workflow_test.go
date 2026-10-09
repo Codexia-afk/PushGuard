@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/pushguard/pushguard/internal/config"
 	"github.com/pushguard/pushguard/internal/model"
@@ -71,6 +73,7 @@ func TestConfiguredProviderGetsNoHTTPBeforeInvestigationApproval(t *testing.T) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	}))
 	defer server.Close()
+	checkLoopback(t, server)
 	cfg, _, _ := config.Load(root)
 	cfg.AI.Provider, cfg.AI.Model, cfg.AI.Endpoint = "ollama", "test-model", server.URL
 	data, _ := json.Marshal(cfg)
@@ -118,6 +121,7 @@ func TestCheckRepairUsesConfiguredHTTPProviderAndNeverPushes(t *testing.T) {
 		_ = json.NewEncoder(w).Encode(map[string]any{"message": map[string]string{"content": string(content)}})
 	}))
 	defer server.Close()
+	checkLoopback(t, server)
 	cfg, _, _ := config.Load(root)
 	cfg.AI.Provider, cfg.AI.Endpoint, cfg.AI.Model = "ollama", server.URL, "test-only-http-provider"
 	data, _ := json.Marshal(cfg)
@@ -315,5 +319,15 @@ func TestLintSourceLiteralRepairApprovalAndReverification(t *testing.T) {
 				remoteEmpty(t, root, remote)
 			})
 		}
+	}
+}
+
+func checkLoopback(t *testing.T, s *httptest.Server) {
+	conn, err := net.DialTimeout("tcp", s.Listener.Addr().String(), 500*time.Millisecond)
+	if err != nil && strings.Contains(err.Error(), "operation not permitted") {
+		t.Skipf("skipping test requiring loopback socket in restricted sandbox: %v", err)
+	}
+	if conn != nil {
+		_ = conn.Close()
 	}
 }
