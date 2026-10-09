@@ -70,8 +70,35 @@ try {
     $Archive = Join-Path $TempDir $Asset
     $Checksums = Join-Path $TempDir 'checksums.txt'
     Write-Host "PushGuard Installer`n-------------------`nPlatform: Windows $TargetArch`nDownloading PushGuard..."
-    Invoke-WebRequest -UseBasicParsing -Uri "$($ReleaseBase.TrimEnd('/'))/$Asset" -OutFile $Archive
-    Invoke-WebRequest -UseBasicParsing -Uri "$($ReleaseBase.TrimEnd('/'))/checksums.txt" -OutFile $Checksums
+    $Downloaded = $false
+    try {
+        Invoke-WebRequest -UseBasicParsing -Uri "$($ReleaseBase.TrimEnd('/'))/$Asset" -OutFile $Archive -ErrorAction Stop
+        Invoke-WebRequest -UseBasicParsing -Uri "$($ReleaseBase.TrimEnd('/'))/checksums.txt" -OutFile $Checksums -ErrorAction Stop
+        $Downloaded = $true
+    } catch {
+        if (Get-Command go -ErrorAction SilentlyContinue) {
+            Write-Host "Pre-built binary archive not found. Compiling directly from source via Go..."
+            New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
+            & go install github.com/Codexia-afk/PushGuard/cmd/pushguard@latest
+            $gobin = (& go env GOBIN 2>$null)
+            if ($gobin) { $gobin = $gobin.Trim() }
+            if (-not $gobin) { $gobin = Join-Path (& go env GOPATH).Trim() 'bin' }
+            $SourceBin = Join-Path $gobin 'pushguard.exe'
+            if (Test-Path $SourceBin) {
+                Copy-Item -LiteralPath $SourceBin -Destination (Join-Path $InstallDir 'pushguard.exe') -Force
+                $UserPath = [string][Environment]::GetEnvironmentVariable('Path', 'User')
+                $PathEntries = @($UserPath -split ';' | Where-Object { $_ })
+                if ($PathEntries -notcontains $InstallDir) {
+                    [Environment]::SetEnvironmentVariable('Path', (($PathEntries + $InstallDir) -join ';'), 'User')
+                }
+                if (($env:Path -split ';') -notcontains $InstallDir) { $env:Path += ";$InstallDir" }
+                Write-Host "✓ Compiled and installed in $InstallDir"
+                Print-Success
+                exit 0
+            }
+        }
+        Fail "Could not download binary release from $($ReleaseBase.TrimEnd('/'))/$Asset. Install with: go install github.com/Codexia-afk/PushGuard/cmd/pushguard@latest"
+    }
     $Expected = $null
     foreach ($Line in Get-Content $Checksums) {
         if ($Line -match '^\s*([0-9a-fA-F]{64})\s+\*?([^\s]+)\s*$' -and $Matches[2] -eq $Asset) {

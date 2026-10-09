@@ -94,7 +94,7 @@ print_success() {
     esac
 }
 
-if [ "${PUSHGUARD_INSTALL_FROM_SOURCE:-0}" = "1" ]; then
+if [ "${PUSHGUARD_INSTALL_FROM_SOURCE:-0}" = "1" ] || ([ -f "go.mod" ] && [ -d "cmd/pushguard" ]); then
     source_install
     exit 0
 fi
@@ -126,9 +126,27 @@ cleanup() { rm -rf "$temp_dir"; }
 trap cleanup EXIT INT TERM
 archive="$temp_dir/$asset"
 checksums="$temp_dir/checksums.txt"
-printf 'PushGuard Installer\n-------------------\nPlatform: %s %s\nDownloading PushGuard...\n' "$target_os" "$target_arch"
-download "${RELEASE_BASE%/}/$asset" "$archive"
-download "${RELEASE_BASE%/}/checksums.txt" "$checksums"
+download_failed=0
+if ! download "${RELEASE_BASE%/}/$asset" "$archive" 2>/dev/null || ! download "${RELEASE_BASE%/}/checksums.txt" "$checksums" 2>/dev/null; then
+    download_failed=1
+fi
+if [ "$download_failed" = "1" ]; then
+    if command -v go >/dev/null 2>&1; then
+        printf 'Pre-built binary archive not found for %s %s.\nCompiling directly from source via Go...\n' "$target_os" "$target_arch"
+        mkdir -p "$INSTALL_DIR"
+        (go install github.com/Codexia-afk/PushGuard/cmd/pushguard@latest)
+        gobin=$(go env GOBIN 2>/dev/null || true)
+        [ -n "$gobin" ] || gobin="$(go env GOPATH 2>/dev/null || echo "$HOME/go")/bin"
+        if [ -f "$gobin/pushguard" ]; then
+            cp -f "$gobin/pushguard" "$INSTALL_DIR/pushguard"
+            chmod 0755 "$INSTALL_DIR/pushguard"
+            printf '✓ Compiled and installed in %s\n' "$INSTALL_DIR"
+            print_success
+            exit 0
+        fi
+    fi
+    fail "could not download release binary from ${RELEASE_BASE%/}/$asset. Ensure GitHub release assets are published or install with: go install github.com/Codexia-afk/PushGuard/cmd/pushguard@latest"
+fi
 expected=$(awk -v name="$asset" '$2 == name {print $1; exit}' "$checksums")
 [ -n "$expected" ] || fail "checksums.txt does not contain $asset"
 actual=$(checksum "$archive")
